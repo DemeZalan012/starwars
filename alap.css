@@ -1,0 +1,35 @@
+body {
+    background-color: #1a1a1a;
+}
+
+h1 {
+    font-family: 'Arial Black', sans-serif;
+    letter-spacing: 2px;
+}
+
+/* Reszponzív táblázat: mobilon listává alakul */
+@media screen and (max-width: 768px) {
+    #planets-table thead {
+        display: none;
+    }
+    #planets-table td {
+        display: block;
+        text-align: right;
+        border-bottom: 1px solid #444;
+    }
+    #planets-table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}

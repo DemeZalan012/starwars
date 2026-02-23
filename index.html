@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>API Wars - Egyszerű verzió</title>
+    <style>
+        body { font-family: sans-serif; background: #222; color: white; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #333; }
+        th, td { border: 1px solid #555; padding: 10px; text-align: left; }
+        th { background: #444; }
+        button { padding: 8px 15px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        
+        /* Modális ablak stílusa */
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; }
+        #modal-content { background: #333; padding: 20px; border-radius: 8px; max-width: 90%; max-height: 80%; overflow: auto; }
+        .close-btn { float: right; cursor: pointer; font-size: 24px; }
+    </style>
+</head>
+<body>
+
+    <h1>Star Wars Bolygók</h1>
+
+    <div id="nav">
+        <button id="prevBtn" onclick="loadPlanets(prevUrl)" disabled>Előző</button>
+        <button id="nextBtn" onclick="loadPlanets(nextUrl)" disabled>Következő</button>
+        <span id="status">Betöltés...</span>
+    </div>
+
+    <table id="planetsTable">
+        <thead>
+            <tr>
+                <th>Név</th>
+                <th>Átmérő (km)</th>
+                <th>Éghajlat</th>
+                <th>Terep</th>
+                <th>Víz (%)</th>
+                <th>Népesség</th>
+                <th>Lakosok</th>
+            </tr>
+        </thead>
+        <tbody id="planetsBody"></tbody>
+    </table>
+
+    <!-- Lakosok Modális -->
+    <div id="modal-overlay">
+        <div id="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2>Lakosok</h2>
+            <table id="residentsTable">
+                <thead>
+                    <tr id="resHeader">
+                        <th>Név</th><th>Magasság</th><th>Tömeg</th><th>Haj</th><th>Bőr</th><th>Szem</th><th>Szül.</th><th>Nem</th>
+                    </tr>
+                </thead>
+                <tbody id="residentsBody"></tbody>
+            </table>
+            <br>
+            <button onclick="closeModal()">Bezárás</button>
+        </div>
+    </div>
+
+    <script>
+        let nextUrl = null;
+        let prevUrl = null;
+
+        // Formázók
+        const fmtNum = (n) => n === "unknown" ? "unknown" : Number(n).toLocaleString() + (isNaN(n) ? "" : " fő");
+        const fmtWater = (n) => n === "unknown" ? "unknown" : n + "%";
+        const getIcon = (g) => g === "male" ? "♂" : (g === "female" ? "♀" : "❓");
+
+        async function loadPlanets(url) {
+            if (!url) return;
+            
+            document.getElementById('status').innerText = "Betöltés...";
+            document.getElementById('planetsBody').innerHTML = "";
+
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            nextUrl = data.next;
+            prevUrl = data.previous;
+            document.getElementById('nextBtn').disabled = !nextUrl;
+            document.getElementById('prevBtn').disabled = !prevUrl;
+
+            data.results.forEach(p => {
+                let btnHtml = p.residents.length > 0 
+                    ? `<button onclick='loadResidents(${JSON.stringify(p.residents)})'>${p.residents.length} lakos</button>` 
+                    : "Nincs ismert lakos";
+
+                document.getElementById('planetsBody').innerHTML += `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${Number(p.diameter).toLocaleString()} km</td>
+                        <td>${p.climate}</td>
+                        <td>${p.terrain}</td>
+                        <td>${fmtWater(p.surface_water)}</td>
+                        <td>${fmtNum(p.population)}</td>
+                        <td>${btnHtml}</td>
+                    </tr>`;
+            });
+            document.getElementById('status').innerText = "";
+        }
+
+        async function loadResidents(urls) {
+            const overlay = document.getElementById('modal-overlay');
+            const body = document.getElementById('residentsBody');
+            const header = document.getElementById('resHeader');
+
+            overlay.style.display = "flex";
+            body.innerHTML = "Betöltés...";
+            header.style.visibility = "hidden"; // Betöltés alatt rejtve
+
+            const residents = await Promise.all(urls.map(u => fetch(u).then(r => r.json())));
+            
+            body.innerHTML = "";
+            header.style.visibility = "visible";
+
+            residents.forEach(r => {
+                body.innerHTML += `
+                    <tr>
+                        <td>${r.name}</td>
+                        <td>${r.height} cm</td>
+                        <td>${r.mass} kg</td>
+                        <td>${r.hair_color}</td>
+                        <td>${r.skin_color}</td>
+                        <td>${r.eye_color}</td>
+                        <td>${r.birth_year}</td>
+                        <td>${getIcon(r.gender)}</td>
+                    </tr>`;
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = "none";
+        }
+
+        // Első hívás
+        loadPlanets("https://swapi.dev/api/planets/");
+    </script>
+</body>
+</html>
