@@ -8,7 +8,7 @@ const prevBtn = document.getElementById('prev-btn');
 const loadingSpinner = document.getElementById('loading-spinner');
 const residentsModal = new bootstrap.Modal(document.getElementById('residentsModal'));
 
-// Formázó függvények
+
 const formatNumber = (num) => {
     if (num === "unknown") return "unknown";
     return new Intl.NumberFormat('en-US').format(num);
@@ -24,7 +24,7 @@ const getGenderIcon = (gender) => {
     return "❓";
 };
 
-// Bolygók betöltése
+
 async function loadPlanets(url) {
     if (!url) return;
 
@@ -44,7 +44,7 @@ async function loadPlanets(url) {
         data.results.forEach(planet => {
             const tr = document.createElement('tr');
             
-            // Lakosok gomb logika
+           
             let residentsBtn = 'Nincs ismert lakos';
             if (planet.residents.length > 0) {
                 residentsBtn = `<button class="btn btn-outline-info btn-sm res-btn" 
@@ -82,7 +82,7 @@ async function loadPlanets(url) {
     }
 }
 
-// Lakosok megjelenítése modálisban
+
 async function showResidents(urls) {
     const resBody = document.getElementById('residents-body');
     const resTable = document.getElementById('residents-table');
@@ -94,7 +94,7 @@ async function showResidents(urls) {
     residentsModal.show();
 
     try {
-        // Párhuzamos lekérés az összes lakosra
+       
         const promises = urls.map(url => fetch(url).then(r => r.json()));
         const residents = await Promise.all(promises);
 
@@ -124,9 +124,9 @@ async function showResidents(urls) {
     }
 }
 
-// Navigáció
+
 nextBtn.addEventListener('click', () => loadPlanets(nextUrl));
 prevBtn.addEventListener('click', () => loadPlanets(prevUrl));
 
-// Kezdő betöltés
+
 loadPlanets(currentPlanetsUrl);
